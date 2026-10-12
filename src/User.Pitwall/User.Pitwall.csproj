@@ -1,0 +1,80 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      SimHub loads plugins into its own .NET Framework 4.8 process, so this assembly has to
+      target net48. The settings screen is built in code rather than XAML: the modern SDK does
+      not compile WPF markup for .NET Framework, and a programmatic control keeps the project
+      buildable with nothing but the .NET SDK installed.
+    -->
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>User.Pitwall</RootNamespace>
+    <AssemblyName>User.Pitwall</AssemblyName>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Pitwall.Core\Pitwall.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SimHub ships these; never copy them next to the plugin or it will load two of each. -->
+    <Reference Include="SimHub.Plugins">
+      <HintPath>$(SimHubPath)SimHub.Plugins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SimHub.Logging">
+      <HintPath>$(SimHubPath)SimHub.Logging.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GameReaderCommon">
+      <HintPath>$(SimHubPath)GameReaderCommon.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>$(SimHubPath)log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WoteverCommon">
+      <HintPath>$(SimHubPath)WoteverCommon.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(SimHubPath)Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Speech" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
+  <!--
+    Installs the plugin straight into SimHub. Only our own two assemblies are copied: everything
+    else in the dependency graph is already part of SimHub and duplicating it causes assembly
+    load conflicts that are painful to diagnose.
+  -->
+  <Target Name="InstallIntoSimHub" AfterTargets="Build" Condition="'$(SkipSimHubInstall)' != 'true' AND Exists('$(SimHubPath)SimHub.Plugins.dll')">
+    <ItemGroup>
+      <PluginFiles Include="$(TargetDir)User.Pitwall.dll" />
+      <PluginFiles Include="$(TargetDir)User.Pitwall.pdb" Condition="Exists('$(TargetDir)User.Pitwall.pdb')" />
+      <PluginFiles Include="$(TargetDir)Pitwall.Core.dll" />
+      <PluginFiles Include="$(TargetDir)Pitwall.Core.pdb" Condition="Exists('$(TargetDir)Pitwall.Core.pdb')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(SimHubPath)" ContinueOnError="true" />
+    <Message Importance="high" Text="Pitwall installato in $(SimHubPath)" />
+  </Target>
+
+</Project>

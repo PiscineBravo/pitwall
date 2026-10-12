@@ -1,0 +1,27 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
+    <Product>Pitwall</Product>
+    <Company>Pitwall</Company>
+    <Version>0.1.0</Version>
+    <Authors>Pitwall</Authors>
+    <NeutralLanguage>it-IT</NeutralLanguage>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;NU1701</NoWarn>
+    <!-- SimHub install folder, exported by the SimHub installer. Fallback for clean machines. -->
+    <SimHubPath Condition="'$(SIMHUB_INSTALL_PATH)' != ''">$(SIMHUB_INSTALL_PATH)</SimHubPath>
+    <SimHubPath Condition="'$(SimHubPath)' == ''">C:\Program Files (x86)\SimHub\</SimHubPath>
+  </PropertyGroup>
+
+  <!--
+    Windows still refuses paths longer than 260 characters for a lot of build tasks. Keeping the
+    intermediate and output folders in a short directory means the solution can live anywhere,
+    including the deep folders some launchers use.
+  -->
+  <PropertyGroup>
+    <PitwallBuildRoot Condition="'$(PitwallBuildRoot)' == ''">$(LOCALAPPDATA)\PitwallBuild\</PitwallBuildRoot>
+    <BaseIntermediateOutputPath>$(PitwallBuildRoot)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(PitwallBuildRoot)bin\$(MSBuildProjectName)\</BaseOutputPath>
+  </PropertyGroup>
+</Project>

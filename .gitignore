@@ -1,0 +1,24 @@
+# Risultati della compilazione
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Il pacchetto pronto da installare.
+#
+# Non sta nel codice sorgente: le DLL e gli eseguibili si pubblicano come Release di GitHub,
+# firmate e con un numero di versione. Tenerli qui dentro gonfia la cronologia a ogni
+# compilazione e, soprattutto, chiede a chi scarica di fidarsi di binari che non ha visto
+# costruire. Con il sorgente pubblico e una Release separata, chi vuole controllare puo'
+# ricompilare e confrontare.
+#
+# I file di testo del pacchetto - le app Lua e il controller meteo - restano invece versionati
+# nelle loro cartelle sorgente, ac-app/.
+installazione/manager/
+installazione/plugin-simhub/
+
+# Roba di Windows e degli editor
+Thumbs.db
+desktop.ini
+*.swp

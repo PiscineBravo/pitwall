@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Pitwall.Simulator</RootNamespace>
+    <AssemblyName>Pitwall.Simulator</AssemblyName>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Pitwall.Core\Pitwall.Core.csproj" />
+  </ItemGroup>
+
+</Project>

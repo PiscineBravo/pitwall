@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- netstandard2.0 so the very same assembly is consumed by the .NET Framework 4.8
+         SimHub plugin and by the .NET 8 WPF manager application. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Pitwall</RootNamespace>
+    <AssemblyName>Pitwall.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 13.0.x keeps assembly version 13.0.0.0, so it binds against the copy SimHub already ships. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

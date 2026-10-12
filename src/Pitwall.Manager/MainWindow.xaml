@@ -1,0 +1,589 @@
+﻿<Window x:Class="Pitwall.Manager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Pitwall.Manager"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Pitwall Manager" Height="820" Width="1320" WindowStartupLocation="CenterScreen"
+        Icon="pitwall.ico">
+
+    <DockPanel>
+
+        <!-- =================================================================================
+             L'intestazione: il marchio, il campionato aperto, e le due azioni che valgono
+             sempre. Sopra c'e una riga rossa sottile, come il nastro sul muretto dei box.
+             ================================================================================= -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource Accent}" Height="3" />
+
+        <Border DockPanel.Dock="Top" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
+                BorderThickness="0,0,0,1" Padding="18,12">
+            <DockPanel>
+                <Image Source="logo.png" Width="30" Height="30" VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,12,0" />
+
+                <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                    <TextBlock Text="{l:T ui.pitwall}" FontSize="17" FontWeight="Bold"
+                               Foreground="{StaticResource Fg}" />
+                    <TextBlock Text="{l:T ui.campionato.per.assetto.corsa}" FontSize="9.5"
+                               Foreground="{StaticResource Muted}" Margin="0,-2,0,0" />
+                </StackPanel>
+
+                <TextBlock x:Name="HeaderChampionship" Text="{l:T ui.nessun.campionato.aperto}" FontSize="15"
+                           VerticalAlignment="Center" Foreground="{StaticResource Muted}" />
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <Button Content="{l:T ui.salva}" Click="OnSave" />
+                    <Button Content="{l:T ui.cartella.dati}" Click="OnOpenDataFolder" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
+                BorderThickness="0,1,0,0" Padding="14,6">
+            <TextBlock x:Name="StatusText" Foreground="{StaticResource Muted}" Text="{l:T ui.pronto}" />
+        </Border>
+
+        <TabControl x:Name="Tabs" Background="{StaticResource Bg}" BorderThickness="0" Margin="8">
+
+            <!-- ================= Championships ================= -->
+            <TabItem Header="{l:T ui.campionati}">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <DockPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.campionati.salvati}" Style="{StaticResource Heading}" />
+                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="{l:T ui.nuovo.campionato}" Click="OnNewSeeded" />
+                            <Button Content="{l:T ui.nuovo.vuoto}" Click="OnNewEmpty" />
+                            <Button Content="{l:T ui.elimina}" Click="OnDeleteChampionship" />
+                        </StackPanel>
+                        <ListBox x:Name="ChampionshipList" SelectionChanged="OnChampionshipSelected"
+                                 DisplayMemberPath="Name" />
+                    </DockPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <Border x:Name="NoChampionshipHint" Background="{StaticResource Panel}"
+                                BorderBrush="{StaticResource Accent}" BorderThickness="3,0,0,0"
+                                Padding="16,12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="{l:T ui.comincia.da.qui}" FontWeight="Bold" FontSize="14" />
+                                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{StaticResource Muted}"
+                                           Text="{l:T ui.non.c.e.nessun.campionato.premi}" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="{l:T ui.dati.del.campionato}" Style="{StaticResource Heading}" />
+                        <TextBlock Style="{StaticResource Note}"
+                                   Text="{l:T ui.il.plugin.simhub.segue.il.campionato}" />
+
+                        <Grid Margin="0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="360" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Grid.Column="0" Content="{l:T ui.nome}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="ChampionshipName" Margin="0,2"
+                                     TextChanged="OnChampionshipNameChanged" />
+
+                            <Label Grid.Row="1" Grid.Column="0" Content="{l:T ui.stagione}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="ChampionshipYear" Margin="0,2"
+                                     LostFocus="OnChampionshipYearChanged" />
+
+                            <Label Grid.Row="2" Grid.Column="0" Content="{l:T ui.descrizione}" />
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="ChampionshipDescription" Margin="0,2"
+                                     AcceptsReturn="True" Height="70" TextWrapping="Wrap"
+                                     TextChanged="OnChampionshipDescriptionChanged" />
+                        </Grid>
+
+                        <TextBlock Text="{l:T ui.assetto.corsa}" Style="{StaticResource Heading}" Margin="0,20,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="AcPath" Width="520" IsReadOnly="True" />
+                            <Button Content="{l:T ui.rileva}" Click="OnDetectAc" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ================= Teams ================= -->
+            <TabItem x:Name="TabTeam" Header="{l:T ui.team}">
+                <DockPanel Margin="10">
+                    <TextBlock DockPanel.Dock="Top" Text="{l:T ui.team}" Style="{StaticResource Heading}" />
+                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource Note}"
+                               Text="{l:T ui.auto.indica.la.cartella.del.mod}" />
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="{l:T ui.aggiungi.team}" Click="OnAddTeam" />
+                        <Button Content="{l:T ui.rimuovi.selezionato}" Click="OnRemoveTeam" />
+                    </StackPanel>
+                    <DataGrid x:Name="TeamsGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{l:T ui.nome}" Binding="{Binding Name}" Width="200" />
+                            <DataGridTextColumn Header="{l:T ui.sigla}" Binding="{Binding ShortName}" Width="70" />
+                            <DataGridTextColumn Header="{l:T ui.colore}" Binding="{Binding Color}" Width="90" />
+                            <DataGridComboBoxColumn x:Name="TeamCarColumn" Header="{l:T ui.auto.ac}"
+                                                    SelectedValueBinding="{Binding AcCarId}" Width="260"
+                                                    ElementStyle="{StaticResource TendinaInTabella}" EditingElementStyle="{StaticResource TendinaInTabella}" />
+                            <DataGridTextColumn Header="{l:T ui.motore}" Binding="{Binding PowerUnit}" Width="130" />
+                            <DataGridTextColumn Header="{l:T ui.punti.iniziali}" Binding="{Binding PointsAdjustment}" Width="100" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ================= Drivers ================= -->
+            <TabItem x:Name="TabPiloti" Header="{l:T ui.piloti}">
+                <DockPanel Margin="10">
+                    <TextBlock DockPanel.Dock="Top" Text="{l:T ui.piloti}" Style="{StaticResource Heading}" />
+                    <TextBlock DockPanel.Dock="Top" Style="{StaticResource Note}"
+                               Text="{l:T ui.nome.ac.deve.coincidere.con.il}" />
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="{l:T ui.aggiungi.pilota}" Click="OnAddDriver" />
+                        <Button Content="{l:T ui.rimuovi.selezionato}" Click="OnRemoveDriver" />
+                        <Button Content="{l:T ui.imposta.come.mio.pilota}" Click="OnSetPlayer" />
+                    </StackPanel>
+                    <DataGrid x:Name="DriversGrid" CellEditEnding="OnDriverCellEdited">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="{l:T ui.tu}" Binding="{Binding IsPlayer}" Width="40" />
+                            <DataGridTextColumn Header="{l:T ui.n}" Binding="{Binding Number}" Width="45" />
+                            <DataGridTextColumn Header="{l:T ui.nome}" Binding="{Binding FirstName}" Width="130" />
+                            <DataGridTextColumn Header="{l:T ui.cognome}" Binding="{Binding LastName}" Width="150" />
+                            <DataGridTextColumn Header="{l:T ui.sigla}" Binding="{Binding Abbreviation}" Width="60" />
+                            <DataGridComboBoxColumn x:Name="DriverTeamColumn" Header="{l:T ui.team}"
+                                                    SelectedValueBinding="{Binding TeamId}" Width="180"
+                                                    ElementStyle="{StaticResource TendinaInTabella}" EditingElementStyle="{StaticResource TendinaInTabella}" />
+                            <DataGridTextColumn Header="{l:T ui.nome.ac}" Binding="{Binding AcName}" Width="200" />
+                            <DataGridTextColumn Header="{l:T ui.abilita.ia}" Binding="{Binding AiSkillText}" Width="80" />
+                            <DataGridTextColumn Header="{l:T ui.aggressivita}" Binding="{Binding AiAggressionText}" Width="95" />
+                            <DataGridTextColumn Header="{l:T ui.nazione}" Binding="{Binding Nationality}" Width="110" />
+                            <DataGridTextColumn Header="{l:T ui.al.posto.di}" Binding="{Binding ReplacedName}" IsReadOnly="True" Width="150" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ================= Circuits ================= -->
+            <TabItem x:Name="TabCircuiti" Header="{l:T ui.circuiti}">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="380" />
+                    </Grid.ColumnDefinitions>
+
+                    <DockPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.circuiti.del.campionato}" Style="{StaticResource Heading}" />
+                        <TextBlock DockPanel.Dock="Top" Style="{StaticResource Note}"
+                                   Text="{l:T ui.severita.gomme.1.5.governa.il}" />
+                        <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="{l:T ui.rimuovi.selezionato}" Click="OnRemoveCircuit" />
+                                <Button Content="{l:T ui.aggiungi.al.calendario}" Click="OnAddRoundFromCircuit" />
+                            </StackPanel>
+                            <TextBlock x:Name="PhysicsStatus" Style="{StaticResource Note}" Margin="0,10,0,4"
+                                       Text="{l:T ui.script.di.physics.stato.sconosciuto}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="{l:T ui.abilita.script.di.physics}" Click="OnEnablePhysics" />
+                                <Button Content="{l:T ui.ripristina.piste}" Click="OnRestorePhysics" />
+                                <Button Content="{l:T ui.verifica}" Click="OnSurveyPhysics" />
+                            </StackPanel>
+                            <TextBlock x:Name="WeatherStatus" Style="{StaticResource Note}" Margin="0,12,0,4"
+                                       Text="{l:T ui.meteo.dinamico.stato.sconosciuto}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="{l:T ui.attiva.meteo.dinamico}" Click="OnEnableWeather" />
+                                <Button Content="{l:T ui.ripristina.meteo}" Click="OnRestoreWeather" />
+                            </StackPanel>
+                        </StackPanel>
+                        <DataGrid x:Name="CircuitsGrid">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{l:T ui.nome}" Binding="{Binding Name}" Width="190" />
+                                <DataGridTextColumn Header="{l:T ui.paese}" Binding="{Binding Country}" Width="120" />
+                                <DataGridTextColumn Header="{l:T ui.track.ac}" Binding="{Binding AcTrackId}" Width="160" />
+                                <DataGridTextColumn Header="{l:T ui.layout}" Binding="{Binding AcTrackConfig}" Width="140" />
+                                <DataGridTextColumn Header="{l:T ui.metri}" Binding="{Binding LengthMeters}" Width="75" />
+                                <DataGridTextColumn Header="{l:T ui.giri.gp}" Binding="{Binding GrandPrixLaps}" Width="70" />
+                                <DataGridTextColumn Header="{l:T ui.giro.rif.s}" Binding="{Binding ReferenceLapSeconds}" Width="90" />
+                                <DataGridTextColumn Header="{l:T ui.sev.gomme}" Binding="{Binding TyreSeverity}" Width="90" />
+                                <DataGridTextColumn Header="{l:T ui.sorpassi}" Binding="{Binding OvertakingDifficulty}" Width="75" />
+                                <DataGridTextColumn Header="{l:T ui.prob.sc}" Binding="{Binding SafetyCarProbability}" Width="75" />
+                                <DataGridTextColumn Header="{l:T ui.prob.pioggia}" Binding="{Binding RainProbability}" Width="95" />
+                                <DataGridTextColumn Header="{l:T ui.perdita.pit.s}" Binding="{Binding PitLaneLossSeconds}" Width="95" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+
+                    <DockPanel Grid.Column="1">
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.piste.installate.in.assetto.corsa}" Style="{StaticResource Heading}" />
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                            <Button Content="{l:T ui.scansiona}" Click="OnScanTracks" />
+                            <Button Content="{l:T ui.aggiungi.al.campionato}" Click="OnAddScannedTrack" />
+                        </StackPanel>
+                        <TextBox DockPanel.Dock="Top" x:Name="TrackFilter" Margin="0,0,0,6"
+                                 TextChanged="OnTrackFilterChanged" ToolTip="{l:T ui.filtra}" />
+                        <ListBox x:Name="ScannedTracks" />
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ================= Calendar ================= -->
+            <TabItem x:Name="TabCalendario" Header="{l:T ui.calendario}">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <DockPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.gare}" Style="{StaticResource Heading}" />
+                        <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="{l:T ui.su}" Click="OnMoveRoundUp" />
+                                <Button Content="{l:T ui.giu}" Click="OnMoveRoundDown" />
+                                <Button Content="{l:T ui.rimuovi}" Click="OnRemoveRound" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button Content="{l:T ui.rigenera.meteo.weekend}" Click="OnRegenerateWeather" />
+                            </StackPanel>
+
+                            <Separator Margin="0,12,0,8" Background="{StaticResource Line}" />
+                            <TextBlock Text="{l:T ui.preset.per.content.manager}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                            <TextBlock Style="{StaticResource Note}"
+                                       Text="{l:T ui.scrive.un.preset.di.quick.drive}" />
+                            <TextBlock Style="{StaticResource Note}"
+                                       Text="{l:T ui.base.facoltativa.se.scegli.un.preset}" />
+                            <ComboBox x:Name="CmTemplate" Margin="0,0,0,6" />
+                            <CheckBox x:Name="CmWeekend" IsChecked="True"
+                                      Content="{l:T ui.fine.settimana.libere.qualifiche.e.gara}"
+                                      ToolTip="{l:T ui.senza.la.spunta.parte.direttamente.la}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="{l:T ui.aggiorna.elenco}" Click="OnRefreshCmTemplates" />
+                                <Button Content="{l:T ui.esporta.gara}" Click="OnExportCmPresets" />
+                            </StackPanel>
+                        </StackPanel>
+                        <ListBox x:Name="RoundList" SelectionChanged="OnRoundSelected" />
+                    </DockPanel>
+
+                    <DockPanel Grid.Column="1">
+                        <TextBlock DockPanel.Dock="Top" x:Name="RoundHeader" Text="{l:T ui.nessuna.gara.selezionata}"
+                                   Style="{StaticResource Heading}" />
+
+                        <Border x:Name="RoundLockedBox" DockPanel.Dock="Top" Visibility="Collapsed"
+                                Background="#1F2A1F" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                                CornerRadius="3" Padding="10,7" Margin="0,0,0,10">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="{l:T ui.riapri.gara}"
+                                        Click="OnReopenRound" Margin="10,0,0,0" />
+                                <TextBlock x:Name="RoundLockedText" TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                            </DockPanel>
+                        </Border>
+
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                            <Label Content="{l:T ui.nome}" />
+                            <TextBox x:Name="RoundName" Width="260" LostFocus="OnRoundFieldChanged" />
+                            <Label Content="{l:T ui.formato}" Margin="14,0,0,0" />
+                            <ComboBox x:Name="RoundFormat" Width="140" SelectionChanged="OnRoundFormatChanged" />
+                            <Label Content="{l:T ui.data}" Margin="14,0,0,0" />
+                            <DatePicker x:Name="RoundDate" Width="130" SelectedDateChanged="OnRoundFieldChanged" />
+                        </StackPanel>
+
+                        <TextBlock DockPanel.Dock="Top" Style="{StaticResource Note}"
+                                   Text="{l:T ui.durata.laps.per.un.numero.fisso}" />
+
+                        <DataGrid x:Name="SessionsGrid" CellEditEnding="OnSessionEdited">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{l:T ui.sessione}" Binding="{Binding Kind}" IsReadOnly="True" Width="140" />
+                                <DataGridCheckBoxColumn Header="{l:T ui.attiva}" Binding="{Binding Enabled}" Width="55" />
+                                <DataGridComboBoxColumn x:Name="LengthModeColumn" Header="{l:T ui.tipo.durata}"
+                                                        SelectedValueBinding="{Binding LengthMode}" Width="140"
+                                                        ElementStyle="{StaticResource TendinaInTabella}" EditingElementStyle="{StaticResource TendinaInTabella}" />
+                                <DataGridTextColumn Header="{l:T ui.valore}" Binding="{Binding Length}" Width="70" />
+                                <DataGridTextColumn Header="{l:T ui.ora.inizio}" Binding="{Binding StartTimeOfDay}" Width="90" />
+                                <DataGridTextColumn Header="{l:T ui.soste.obbl}" Binding="{Binding MandatoryPitStops}" Width="85" />
+                                <DataGridCheckBoxColumn Header="{l:T ui.2.mescole}" Binding="{Binding TwoCompoundRule}" Width="80" />
+                                <DataGridCheckBoxColumn Header="{l:T ui.formazione}" Binding="{Binding FormationLap}" Width="85" />
+                                <DataGridCheckBoxColumn Header="{l:T ui.parten.ferma}" Binding="{Binding StandingStart}" Width="95" />
+                                <DataGridCheckBoxColumn Header="{l:T ui.parc.ferme}" Binding="{Binding ParcFerme}" Width="85" />
+                                <DataGridTextColumn Header="{l:T ui.meteo.previsto}" Binding="{Binding Weather.Summary}"
+                                                    IsReadOnly="True" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ================= Rules ================= -->
+            <TabItem x:Name="TabRegolamento" Header="{l:T ui.regolamento}">
+                <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                            <TextBlock Text="{l:T ui.punteggi}" Style="{StaticResource Heading}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Label Content="{l:T ui.preset}" />
+                                <ComboBox x:Name="PointsPreset" Width="220" SelectionChanged="OnPointsPresetChanged" />
+                            </StackPanel>
+                            <Label Content="{l:T ui.punti.gara.dal.primo.in.giu}" />
+                            <TextBox x:Name="RacePoints" LostFocus="OnRulesChanged" Margin="0,0,0,8" />
+                            <Label Content="{l:T ui.punti.sprint}" />
+                            <TextBox x:Name="SprintPoints" LostFocus="OnRulesChanged" Margin="0,0,0,8" />
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="{l:T ui.giro.veloce}" />
+                                <TextBox x:Name="FastestLapPoints" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.entro.la.posizione}" Margin="12,0,0,0" />
+                                <TextBox x:Name="FastestLapMax" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.pole}" Margin="12,0,0,0" />
+                                <TextBox x:Name="PolePoints" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Label Content="{l:T ui.scarti.peggiori.risultati}" />
+                                <TextBox x:Name="DroppedScores" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+                            <CheckBox x:Name="ShortenedScale" Content="{l:T ui.punteggio.ridotto.se.la.gara.finisce}"
+                                      Click="OnRulesChanged" />
+
+                            <TextBlock Text="{l:T ui.gomme}" Style="{StaticResource Heading}" Margin="0,24,0,8" />
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="{l:T ui.set.s.m.h}" />
+                                <TextBox x:Name="SoftSets" Width="50" LostFocus="OnRulesChanged" />
+                                <TextBox x:Name="MediumSets" Width="50" Margin="6,0,0,0" LostFocus="OnRulesChanged" />
+                                <TextBox x:Name="HardSets" Width="50" Margin="6,0,0,0" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Label Content="{l:T ui.usura.al.degrado}" />
+                                <TextBox x:Name="CliffWear" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.usura.critica}" Margin="12,0,0,0" />
+                                <TextBox x:Name="CriticalWear" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+
+                            <TextBlock Text="{l:T ui.meteo}" Style="{StaticResource Heading}" Margin="0,24,0,8" />
+                            <CheckBox x:Name="DynamicWeather" Content="{l:T ui.meteo.dinamico}" Click="OnRulesChanged" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Label Content="{l:T ui.moltiplicatore.pioggia}" />
+                                <TextBox x:Name="RainMultiplier" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.variabilita}" Margin="12,0,0,0" />
+                                <TextBox x:Name="WeatherVolatility" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{l:T ui.direzione.gara}" Style="{StaticResource Heading}" />
+                            <CheckBox x:Name="RcEnabled" Content="{l:T ui.direzione.gara.attiva}" Click="OnRulesChanged" />
+                            <CheckBox x:Name="VscEnabled" Content="{l:T ui.virtual.safety.car}" Click="OnRulesChanged" />
+                            <CheckBox x:Name="ScEnabled" Content="{l:T ui.safety.car}" Click="OnRulesChanged" />
+                            <CheckBox x:Name="RedFlagEnabled" Content="{l:T ui.bandiera.rossa}" Click="OnRulesChanged" />
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Label Content="{l:T ui.durata.minima.vsc.s}" />
+                                <TextBox x:Name="VscSeconds" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.giri.minimi.sc}" Margin="12,0,0,0" />
+                                <TextBox x:Name="ScLaps" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Label Content="{l:T ui.ritmo.vsc}" />
+                                <TextBox x:Name="VscPace" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.ritmo.sc}" Margin="12,0,0,0" />
+                                <TextBox x:Name="ScPace" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+
+                            <TextBlock Text="{l:T ui.penalita}" Style="{StaticResource Heading}" Margin="0,24,0,8" />
+                            <CheckBox x:Name="TrackLimitsEnabled" Content="{l:T ui.track.limits}" Click="OnRulesChanged" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Label Content="{l:T ui.avvertimenti.consentiti}" />
+                                <TextBox x:Name="TrackLimitsWarnings" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.penalita.s}" Margin="12,0,0,0" />
+                                <TextBox x:Name="TrackLimitsPenalty" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+                            <CheckBox x:Name="PitSpeedEnabled" Content="{l:T ui.velocita.in.pit.lane}" Click="OnRulesChanged" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Label Content="{l:T ui.limite.pit.km.h}" />
+                                <TextBox x:Name="PitSpeedLimit" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.penalita.s}" Margin="12,0,0,0" />
+                                <TextBox x:Name="PitSpeedPenalty" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+
+                            <TextBlock Text="{l:T ui.ingegnere.di.pista}" Style="{StaticResource Heading}" Margin="0,24,0,8" />
+                            <CheckBox x:Name="EngineerEnabled" Content="{l:T ui.attivo}" Click="OnRulesChanged" />
+                            <TextBlock Style="{StaticResource Note}" Margin="0,4,0,0"
+                                       Text="{l:T ui.parla.nella.lingua.scelta.in.impostazioni}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Label Content="{l:T ui.loquacita.0.2}" />
+                                <TextBox x:Name="EngineerVerbosity" Width="50" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.pausa.minima.s}" Margin="12,0,0,0" />
+                                <TextBox x:Name="EngineerGap" Width="50" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+
+                            <TextBlock Text="{l:T ui.realismo}" Style="{StaticResource Heading}" Margin="0,24,0,8" />
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="{l:T ui.consumo}" />
+                                <TextBox x:Name="FuelRate" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.usura.gomme}" Margin="12,0,0,0" />
+                                <TextBox x:Name="TyreWearRate" Width="60" LostFocus="OnRulesChanged" />
+                                <Label Content="{l:T ui.danni}" Margin="12,0,0,0" />
+                                <TextBox x:Name="DamageRate" Width="60" LostFocus="OnRulesChanged" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= Standings ================= -->
+            <TabItem x:Name="TabClassifiche" Header="{l:T ui.classifiche}">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="{l:T ui.aggiorna}" Click="OnRefreshStandings" />
+                        <Button Content="{l:T ui.esporta.csv}" Click="OnExportStandings" />
+                        <Label Content="{l:T ui.risultati.gara}" Margin="20,0,0,0" />
+                        <ComboBox x:Name="ResultRound" Width="280" SelectionChanged="OnResultRoundChanged" />
+                        <ComboBox x:Name="ResultSession" Width="180" Margin="8,0,0,0"
+                                  SelectionChanged="OnResultRoundChanged" />
+                    </StackPanel>
+
+                    <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.piloti}" Style="{StaticResource Heading}" />
+                        <DataGrid x:Name="DriverStandings" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{l:T ui.pos}" Binding="{Binding Position}" Width="45" />
+                                <DataGridTextColumn Header="{l:T ui.pilota}" Binding="{Binding Name}" Width="180" />
+                                <DataGridTextColumn Header="{l:T ui.team}" Binding="{Binding TeamName}" Width="150" />
+                                <DataGridTextColumn Header="{l:T ui.punti}" Binding="{Binding Points}" Width="60" />
+                                <DataGridTextColumn Header="V" Binding="{Binding Wins}" Width="40" />
+                                <DataGridTextColumn Header="{l:T ui.pod}" Binding="{Binding Podiums}" Width="45" />
+                                <DataGridTextColumn Header="{l:T ui.pole}" Binding="{Binding Poles}" Width="45" />
+                                <DataGridTextColumn Header="{l:T ui.gv}" Binding="{Binding FastestLaps}" Width="40" />
+                                <DataGridTextColumn Header="{l:T ui.rit}" Binding="{Binding Retirements}" Width="40" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+
+                    <DockPanel Grid.Row="1" Grid.Column="1">
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.costruttori}" Style="{StaticResource Heading}" />
+                        <DataGrid x:Name="TeamStandings" DockPanel.Dock="Top" Height="200" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{l:T ui.pos}" Binding="{Binding Position}" Width="45" />
+                                <DataGridTextColumn Header="{l:T ui.team}" Binding="{Binding Name}" Width="200" />
+                                <DataGridTextColumn Header="{l:T ui.punti}" Binding="{Binding Points}" Width="60" />
+                                <DataGridTextColumn Header="V" Binding="{Binding Wins}" Width="40" />
+                                <DataGridTextColumn Header="{l:T ui.pod}" Binding="{Binding Podiums}" Width="45" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.ordine.d.arrivo}" Style="{StaticResource Heading}"
+                                   Margin="0,16,0,8" />
+                        <DataGrid x:Name="ResultGrid" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{l:T ui.pos}" Binding="{Binding Position}" Width="45" />
+                                <DataGridTextColumn Header="{l:T ui.pilota}" Binding="{Binding DriverName}" Width="170" />
+                                <DataGridTextColumn Header="{l:T ui.giri}" Binding="{Binding Laps}" Width="50" />
+                                <DataGridTextColumn Header="{l:T ui.miglior.giro}" Binding="{Binding BestLap}" Width="110" />
+                                <DataGridTextColumn Header="{l:T ui.soste}" Binding="{Binding PitStops}" Width="50" />
+                                <DataGridTextColumn Header="{l:T ui.penalita}" Binding="{Binding PenaltySeconds}" Width="70" />
+                                <DataGridTextColumn Header="{l:T ui.stato}" Binding="{Binding Status}" Width="100" />
+                                <DataGridTextColumn Header="{l:T ui.punti}" Binding="{Binding Points}" Width="55" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ================= Live ================= -->
+            <!-- ================= Impostazioni ================= -->
+            <TabItem Header="{l:T ui.impostazioni}">
+                <ScrollViewer>
+                    <StackPanel Margin="14">
+                        <TextBlock Text="{l:T ui.lingua}" Style="{StaticResource Heading}" />
+                        <TextBlock Style="{StaticResource Note}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                   Text="{l:T ui.vale.per.tutto.pitwall.questa.applicazione}" />
+
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="LanguageChoice" Width="260"
+                                      SelectionChanged="OnLanguageChanged" />
+                            <TextBlock x:Name="LanguageNow" VerticalAlignment="Center" Margin="14,0,0,0"
+                                       Foreground="{StaticResource Muted}" />
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource Note}" TextWrapping="Wrap" Margin="0,10,0,0"
+                                   Text="{l:T ui.la.lingua.cambia.subito.qui.dentro}" />
+
+                        <TextBlock Text="{l:T ui.cartelle}" Style="{StaticResource Heading}" Margin="0,26,0,6" />
+                        <TextBlock Style="{StaticResource Note}" TextWrapping="Wrap"
+                                   Text="{l:T ui.pitwall.tiene.tutto.in.file.senza}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Content="{l:T ui.apri.la.cartella.dati}" Click="OnOpenDataFolder" />
+                            <TextBlock x:Name="DataFolderPath" VerticalAlignment="Center" Margin="14,0,0,0"
+                                       Foreground="{StaticResource Muted}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem x:Name="TabLive" Header="{l:T ui.live}">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="{l:T ui.muretto.box}" Style="{StaticResource Heading}" />
+                        <TextBlock x:Name="LiveConnection" Style="{StaticResource Note}" Text="{l:T ui.in.attesa.del.plugin.simhub}" />
+
+                        <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
+                                BorderThickness="1" CornerRadius="4" Padding="12">
+                            <TextBlock x:Name="LiveSummary" FontFamily="Consolas" LineHeight="20" Text="-" />
+                        </Border>
+
+                        <TextBlock Text="{l:T ui.controlli.direzione.gara}" Style="{StaticResource Heading}" Margin="0,20,0,8" />
+                        <WrapPanel>
+                            <Button Content="{l:T ui.virtual.safety.car.2}" Click="OnLiveVsc" Margin="0,0,8,8" />
+                            <Button Content="{l:T ui.safety.car.2}" Click="OnLiveSc" Margin="0,0,8,8" />
+                            <Button Content="{l:T ui.fine.neutralizzazione}" Click="OnLiveEnd" Margin="0,0,8,8" />
+                            <Button Content="{l:T ui.verde}" Click="OnLiveGreen" Margin="0,0,8,8" />
+                            <Button Content="{l:T ui.bandiera.rossa}" Click="OnLiveRed" Margin="0,0,8,8" />
+                            <Button Content="{l:T ui.salva.risultato}" Click="OnLiveSaveResult" Margin="0,0,8,8" />
+                            <Button Content="{l:T ui.azzera.penalita}" Click="OnLiveClearPenalties" Margin="0,0,8,8" />
+                        </WrapPanel>
+
+                        <TextBlock Text="{l:T ui.radio}" Style="{StaticResource Heading}" Margin="0,20,0,8" />
+                        <ListBox x:Name="LiveRadio" Height="180" />
+                    </StackPanel>
+
+                    <DockPanel Grid.Column="1">
+                        <TextBlock DockPanel.Dock="Top" Text="{l:T ui.tempi.in.tempo.reale}" Style="{StaticResource Heading}" />
+                        <DataGrid x:Name="LiveTiming" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{l:T ui.pos}" Binding="{Binding Position}" Width="45" />
+                                <DataGridTextColumn Header="{l:T ui.pilota}" Binding="{Binding Name}" Width="190" />
+                                <DataGridTextColumn Header="{l:T ui.team}" Binding="{Binding TeamName}" Width="150" />
+                                <DataGridTextColumn Header="{l:T ui.distacco}" Binding="{Binding Gap}" Width="100" />
+                                <DataGridTextColumn Header="{l:T ui.giri}" Binding="{Binding Laps}" Width="50" />
+                                <DataGridTextColumn Header="{l:T ui.miglior.giro}" Binding="{Binding BestLap}" Width="110" />
+                                <DataGridTextColumn Header="{l:T ui.gomma}" Binding="{Binding Compound}" Width="65" />
+                                <DataGridTextColumn Header="{l:T ui.soste}" Binding="{Binding PitStops}" Width="55" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+    </DockPanel>
+</Window>
