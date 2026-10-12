@@ -39,7 +39,7 @@ function leggiVocabolario() {
 // ---------------------------------------------------------------------------
 // Le chiavi usate nel codice.
 // ---------------------------------------------------------------------------
-function chiaviUsate() {
+function chiaviUsate(noteChiavi) {
   const trovate = new Map();
 
   function percorri(cartella) {
@@ -58,6 +58,22 @@ function chiaviUsate() {
             trovate.get(m[1]).push(path.relative(radice, completo));
           }
         }
+
+        // Terza forma: qualunque stringa che sia gia una chiave del vocabolario.
+        //
+        // Serve perche una chiave puo passare per un aiutante - Voce("muretto.giro", ...) invece
+        // di Testi.T("muretto.giro") - e cercando solo le due forme esplicite quelle chiavi
+        // risultavano "mai usate" pur essendo in uso, nascondendo fra i falsi allarmi quelli veri.
+        //
+        // Non puo sbagliare per eccesso: si confronta con le chiavi che esistono gia, quindi una
+        // stringa che coincide con una di quelle la sta nominando davvero.
+        if (noteChiavi) {
+          for (const m of testo.matchAll(/"([^"\n]+)"/g)) {
+            if (!noteChiavi.has(m[1])) continue;
+            if (!trovate.has(m[1])) trovate.set(m[1], []);
+            trovate.get(m[1]).push(path.relative(radice, completo));
+          }
+        }
       }
     }
   }
@@ -68,7 +84,7 @@ function chiaviUsate() {
 
 // ---------------------------------------------------------------------------
 const voci = leggiVocabolario();
-const usate = chiaviUsate();
+const usate = chiaviUsate(new Set(voci.map(v => v.chiave)));
 
 const perChiave = new Map();
 for (const v of voci) {

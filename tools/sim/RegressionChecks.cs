@@ -33,6 +33,7 @@ namespace Pitwall.Simulator
                 check("Stato e comandi del bridge nella sandbox", () => CheckBridge(sandbox));
                 check("Salvataggio e caricamento del campionato", CheckChampionship);
                 check("Liste cresciute da sole riportate alla misura", CheckListePotate);
+                check("Un campionato eliminato non rinasce dal plugin", CheckNienteRinascite);
                 check("Rientro automatico SC prima del verde", CheckAutomaticSafetyCar);
                 check("Rientro manuale SC persistente e idempotente", CheckManualSafetyCar);
                 check("Safety car senza vettura reale", CheckVirtualSafetyCar);
@@ -89,6 +90,34 @@ namespace Pitwall.Simulator
                     "Durate delle manche non potate: " + sessione.KnockoutSegmentMinutes.Count + " voci.");
             Require(c.Rules.Points.Sprint.SequenceEqual(sprintSuo),
                     "Una lista non ripetuta e stata accorciata: non si deve toccare.");
+        }
+
+        /// <summary>
+        /// Un campionato eliminato mentre il plugin lo tiene in memoria non deve tornare.
+        ///
+        /// E successo davvero: due campionati cancellati dal Manager sono ricomparsi su disco il
+        /// giorno dopo, perche il plugin ne aveva una copia viva e al primo salvataggio utile l ha
+        /// riscritta. Dal Manager sembrava che l eliminazione non funzionasse.
+        /// </summary>
+        private static void CheckNienteRinascite()
+        {
+            var c = SeedData.DefaultChampionship("Prova rinascita");
+            ChampionshipStore.Save(c);
+            Require(ChampionshipStore.Exists(c.Id), "Il campionato di prova non e stato scritto.");
+
+            var engine = new SessionEngine();
+            engine.SetChampionship(c);
+
+            // Lo elimina qualcun altro - l applicazione Windows - mentre il motore lo tiene aperto.
+            ChampionshipStore.Delete(c.Id);
+            Require(!ChampionshipStore.Exists(c.Id), "L eliminazione non ha tolto il file.");
+
+            engine.SaveChampionship();
+
+            Require(!ChampionshipStore.Exists(c.Id),
+                    "Il campionato eliminato e tornato su disco dopo un salvataggio del plugin.");
+            Require(engine.Championship == null,
+                    "Il motore segue ancora un campionato che non esiste piu.");
         }
 
         private static void Require(bool condition, string message)

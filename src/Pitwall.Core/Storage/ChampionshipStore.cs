@@ -102,6 +102,10 @@ namespace Pitwall.Storage
             }
         }
 
+        /// <summary>Vero se il campionato esiste ancora su disco.</summary>
+        public static bool Exists(string id) =>
+            !string.IsNullOrEmpty(id) && File.Exists(PitwallPaths.ChampionshipFile(id));
+
         public static bool Delete(string id)
         {
             string path = PitwallPaths.ChampionshipFile(id);

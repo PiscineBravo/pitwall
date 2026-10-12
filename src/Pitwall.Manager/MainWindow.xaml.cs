@@ -48,6 +48,15 @@ namespace Pitwall.Manager
 
             // La lingua si legge prima di disegnare qualunque cosa.
             Pitwall.Lingue.Testi.Applica(Impostazioni.Correnti);
+
+            // ...e le scritte gia disegnate vanno rilette.
+            //
+            // InitializeComponent() gira nel costruttore e risolve li tutte le traduzioni dell interfaccia, quindi
+            // quando arriviamo qui l interfaccia esiste gia nella lingua di partenza. Applica cambia
+            // il vocabolario ma non avvisa nessuno: senza questa riga l impostazione salvata non
+            // sopravvive alla chiusura del programma, e funziona solo finche la si cambia a mano dal
+            // menu - che e esattamente come sembrava che non funzionasse affatto.
+            Traduzioni.Corrente.Aggiorna();
             BindSettings();
 
             RoundFormat.ItemsSource = Enum.GetValues(typeof(WeekendFormat));
@@ -59,7 +68,7 @@ namespace Pitwall.Manager
             DriverTeamColumn.DisplayMemberPath = "Name";
 
             _acRoot = AcContentScanner.FindInstallation();
-            AcPath.Text = _acRoot ?? "Assetto Corsa non trovato";
+            AcPath.Text = _acRoot ?? Testi.T("msg.ac.non.trovato");
             if (_acRoot != null) TeamCarColumn.ItemsSource = AcContentScanner.Cars(_acRoot);
 
             ReloadChampionshipList();
@@ -68,7 +77,7 @@ namespace Pitwall.Manager
                 _championship = SeedData.DefaultChampionship();
                 ChampionshipStore.Save(_championship);
                 ReloadChampionshipList();
-                Status("Creato un campionato iniziale con la griglia e il calendario completi.");
+                Status(Testi.T("msg.campionato.iniziale"));
             }
 
             ChampionshipList.SelectedIndex = 0;
@@ -193,7 +202,7 @@ namespace Pitwall.Manager
             var loaded = ChampionshipStore.Load(summary.Id);
             if (loaded == null)
             {
-                Status("Impossibile aprire " + summary.Name);
+                Status(Testi.T("msg.campionato.apertura.fallita", summary.Name));
                 return;
             }
 
@@ -201,7 +210,7 @@ namespace Pitwall.Manager
             BindChampionship();
             UpdateTabsEnabled();
             AllineaContentManager();
-            Status("Aperto " + _championship.Name);
+            Status(Testi.T("ui.aperto", _championship.Name));
         }
 
         /// <summary>
@@ -238,9 +247,8 @@ namespace Pitwall.Manager
             if (_championship == null) return;
             _loading = true;
 
-            HeaderChampionship.Text = _championship.Name + "   -   stagione " + _championship.SeasonYear +
-                                      "   -   " + _championship.Drivers.Count + " piloti, " +
-                                      _championship.Calendar.Count + " gare";
+            HeaderChampionship.Text = Testi.T("ui.intestazione", _championship.Name,
+                _championship.SeasonYear, _championship.Drivers.Count, _championship.Calendar.Count);
 
             ChampionshipName.Text = _championship.Name;
             ChampionshipYear.Text = _championship.SeasonYear.ToString();
@@ -347,7 +355,7 @@ namespace Pitwall.Manager
             ChampionshipStore.Save(created);
             ReloadChampionshipList();
             ChampionshipList.SelectedIndex = _summaries.FindIndex(s => s.Id == created.Id);
-            Status("Campionato vuoto creato. Aggiungi team, piloti e circuiti.");
+            Status(Testi.T("msg.campionato.vuoto"));
         }
 
         private void OnDeleteChampionship(object sender, RoutedEventArgs e)
@@ -370,19 +378,24 @@ namespace Pitwall.Manager
             // doverle togliere: lasciarle li vorrebbe dire un menu che si riempie di campionati
             // che non esistono piu, e nessuno che capisca da dove arrivano.
             string rimosse = ContentManagerExporter.RemovePresets(summary.Name)
-                ? " Tolte anche le sue gare da Content Manager."
+                ? Testi.T("msg.campionato.gare.tolte")
                 : "";
 
             _championship = null;
+
+            // Il plugin tiene il campionato in memoria: se non lo si avvisa continua a seguire
+            // uno che non esiste piu, e prima o poi lo riscrive su disco.
+            LiveBridge.SendCommand(CommandNames.Reload);
+
             ReloadChampionshipList();
-            Status("Campionato eliminato." + rimosse);
+            Status(Testi.T("msg.campionato.eliminato") + rimosse);
         }
 
         private void OnChampionshipNameChanged(object sender, TextChangedEventArgs e)
         {
             if (_loading || _championship == null) return;
             _championship.Name = ChampionshipName.Text;
-            HeaderChampionship.Text = _championship.Name + "   -   stagione " + _championship.SeasonYear;
+            HeaderChampionship.Text = Testi.T("ui.intestazione.corta", _championship.Name, _championship.SeasonYear);
         }
 
         private void OnChampionshipYearChanged(object sender, RoutedEventArgs e)
@@ -409,12 +422,12 @@ namespace Pitwall.Manager
                 if (!silent)
                 {
                     ReloadChampionshipList();
-                    Status("Salvato alle " + DateTime.Now.ToString("HH:mm:ss") + ". Il plugin SimHub ricarichera i dati.");
+                    Status(Testi.T("msg.salvato.alle", DateTime.Now.ToString("HH:mm:ss")));
                 }
             }
             catch (Exception ex)
             {
-                if (!silent) MessageBox.Show("Salvataggio non riuscito: " + ex.Message, "Pitwall");
+                if (!silent) MessageBox.Show(Testi.T("msg.salvataggio.fallito", ex.Message), "Pitwall");
             }
         }
 
@@ -427,7 +440,7 @@ namespace Pitwall.Manager
         private void OnDetectAc(object sender, RoutedEventArgs e)
         {
             _acRoot = AcContentScanner.FindInstallation();
-            AcPath.Text = _acRoot ?? "Assetto Corsa non trovato";
+            AcPath.Text = _acRoot ?? Testi.T("msg.ac.non.trovato");
             if (_acRoot != null)
             {
                 TeamCarColumn.ItemsSource = AcContentScanner.Cars(_acRoot);
@@ -500,8 +513,8 @@ namespace Pitwall.Manager
 
             // La griglia e ancora in modifica: il rebind va rimandato a fine evento.
             Dispatcher.BeginInvoke(new Action(RebindDrivers), DispatcherPriority.Background);
-            Status(mine ? "Guiderai come " + driver.FullName + "."
-                        : "Nessun pilota selezionato come tuo.");
+            Status(mine ? Testi.T("msg.guiderai.come", driver.FullName)
+                        : Testi.T("msg.nessun.pilota.tuo"));
         }
 
         private void OnSetPlayer(object sender, RoutedEventArgs e)
@@ -511,7 +524,7 @@ namespace Pitwall.Manager
             foreach (var d in _championship.Drivers) d.IsPlayer = false;
             driver.IsPlayer = true;
             RebindDrivers();
-            Status("Guiderai come " + driver.FullName + ".");
+            Status(Testi.T("msg.guiderai.come", driver.FullName));
         }
 
         // ================= Circuits =================
@@ -521,7 +534,7 @@ namespace Pitwall.Manager
             if (_acRoot == null) _acRoot = AcContentScanner.FindInstallation();
             if (_acRoot == null)
             {
-                MessageBox.Show("Assetto Corsa non trovato. Indica il percorso manualmente nella scheda Campionati.", "Pitwall");
+                MessageBox.Show(Testi.T("msg.ac.indica.percorso"), "Pitwall");
                 return;
             }
 
@@ -550,7 +563,7 @@ namespace Pitwall.Manager
                 string.Equals(c.AcTrackConfig ?? "", track.Layout ?? "", StringComparison.OrdinalIgnoreCase));
             if (exists)
             {
-                Status("Questo tracciato e gia nel campionato.");
+                Status(Testi.T("msg.tracciato.gia.presente"));
                 return;
             }
 
@@ -602,7 +615,7 @@ namespace Pitwall.Manager
         {
             if (_championship == null || _acRoot == null)
             {
-                PhysicsStatus.Text = "Assetto Corsa non trovato: impossibile controllare le piste.";
+                PhysicsStatus.Text = Testi.T("msg.piste.non.controllabili");
                 return;
             }
 
@@ -1168,6 +1181,14 @@ namespace Pitwall.Manager
 
         // ================= Live =================
 
+        /// <summary>Una riga del muretto: etichetta tradotta e valore.</summary>
+        private static KeyValuePair<string, string> Voce(string chiave, string valore) =>
+            new KeyValuePair<string, string>(Testi.T(chiave), valore ?? "");
+
+        /// <summary>Una riga vuota fra un gruppo e l'altro.</summary>
+        private static KeyValuePair<string, string> Stacco() =>
+            new KeyValuePair<string, string>(null, null);
+
         private void OnLiveTick(object sender, EventArgs e)
         {
             // Si confronta la scheda, non il suo numero.
@@ -1189,31 +1210,54 @@ namespace Pitwall.Manager
             }
 
             LiveConnection.Text = state.GameRunning
-                ? "Collegato - " + state.ChampionshipName + " - " + state.SessionLabel
-                : "Collegato - gioco non in esecuzione";
+                ? Testi.T("muretto.collegato", state.ChampionshipName, state.SessionLabel)
+                : Testi.T("muretto.gioco.fermo");
 
-            var lines = new List<string>
+            // Il pannello si incolonna da solo.
+            //
+            // Prima le etichette erano scritte con gli spazi dentro - "Dir. gara  " - e quindi
+            // allineate a mano su una larghezza decisa una volta per tutte in italiano. Tradotte,
+            // quelle larghezze non tornavano piu: era il motivo per cui questo pannello era rimasto
+            // l'unico pezzo non tradotto dell'applicazione. Qui si scrive solo la parola, e la
+            // colonna si calcola sulla piu lunga del momento: vale in qualunque lingua, anche in una
+            // che non abbiamo ancora.
+            var voci = new List<KeyValuePair<string, string>>
             {
-                "Round      " + state.RoundName,
-                "Circuito   " + state.CircuitName,
-                "Giro       " + state.LapCurrent + (state.LapsTotal > 0 ? " / " + state.LapsTotal : ""),
-                "Posizione  " + (state.Position > 0 ? "P" + state.Position : "-"),
-                "",
-                "Dir. gara  " + state.RaceControlText,
-                "Delta      " + state.Delta.ToString("+0.00;-0.00"),
-                "Penalita   " + (state.PendingPenaltySeconds > 0 ? "+" + state.PendingPenaltySeconds + " s" : "nessuna"),
-                "Track lim. " + state.TrackLimitStrikes,
-                "",
-                "Gomme      " + state.TyreCompound + "  " + state.TyreWearPercent.ToString("0.0") + "%",
-                "Degrado    fra " + state.LapsToCliff.ToString("0.0") + " giri",
-                "Strategia  " + state.StrategyAdvice,
-                "Finestra   " + state.PitWindowEarliest + " - " + state.PitWindowLatest +
-                                  " (ideale " + state.PitWindowIdeal + ")",
-                "",
-                "Meteo      " + state.WeatherNow +
-                                  (state.MinutesToRain >= 0 ? ", pioggia fra " + state.MinutesToRain + " min" : ""),
-                "Aria/Pista " + state.AirTemperature + " / " + state.RoadTemperature
+                Voce("muretto.round", state.RoundName),
+                Voce("muretto.circuito", state.CircuitName),
+                Voce("muretto.giro", state.LapCurrent + (state.LapsTotal > 0 ? " / " + state.LapsTotal : "")),
+                Voce("muretto.posizione", state.Position > 0 ? "P" + state.Position : "-"),
+                Stacco(),
+                Voce("muretto.direzione", state.RaceControlText),
+                Voce("muretto.delta", state.Delta.ToString("+0.00;-0.00")),
+                Voce("muretto.penalita", state.PendingPenaltySeconds > 0
+                        ? "+" + state.PendingPenaltySeconds + " s"
+                        : Testi.T("muretto.nessuna")),
+                Voce("muretto.limiti", state.TrackLimitStrikes.ToString()),
+                Stacco(),
+                Voce("muretto.gomme", state.TyreCompound + "  " + state.TyreWearPercent.ToString("0.0") + "%"),
+                Voce("muretto.degrado", Testi.T("muretto.fra.giri", state.LapsToCliff.ToString("0.0"))),
+                Voce("muretto.strategia", state.StrategyAdvice),
+                Voce("muretto.finestra", state.PitWindowEarliest + " - " + state.PitWindowLatest +
+                        " (" + Testi.T("muretto.ideale", state.PitWindowIdeal) + ")"),
+                Stacco(),
+                Voce("muretto.meteo", state.WeatherNow + (state.MinutesToRain >= 0
+                        ? Testi.T("muretto.pioggia.fra", state.MinutesToRain) : "")),
+                Voce("muretto.temperature", state.AirTemperature + " / " + state.RoadTemperature)
             };
+
+            int colonna = 0;
+            foreach (var voce in voci)
+            {
+                if (voce.Key != null && voce.Key.Length > colonna) colonna = voce.Key.Length;
+            }
+            colonna += 2;
+
+            var lines = new List<string>();
+            foreach (var voce in voci)
+            {
+                lines.Add(voce.Key == null ? "" : voce.Key.PadRight(colonna) + voce.Value);
+            }
 
             LiveSummary.Text = string.Join(Environment.NewLine, lines);
             LiveTiming.ItemsSource = state.Timing;

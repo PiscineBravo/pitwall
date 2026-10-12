@@ -163,9 +163,30 @@ namespace Pitwall.Live
             LiveBridge.PublishState(State, true);
         }
 
+        /// <summary>
+        /// Scrive il campionato su disco, ma non lo riporta in vita.
+        ///
+        /// Il plugin tiene il campionato in memoria per tutta la sessione di gioco. Se nel
+        /// frattempo lo si elimina dall'applicazione Windows, il file sparisce - e al primo
+        /// salvataggio successivo ricompariva, ricostruito da questa copia in memoria. Due
+        /// campionati cancellati sono tornati cosi, e dal Manager sembrava che l'eliminazione
+        /// non funzionasse.
+        ///
+        /// La regola e semplice: questo e un salvataggio, non una creazione. Se il file che
+        /// stavamo seguendo non esiste piu, qualcuno lo ha tolto di proposito, e la risposta
+        /// giusta e smettere di seguirlo - non riscriverlo.
+        /// </summary>
         public void SaveChampionship()
         {
             if (Championship == null) return;
+
+            if (!ChampionshipStore.Exists(Championship.Id))
+            {
+                Raise(Testi.T("campionato.eliminato.altrove"));
+                Championship = null;
+                return;
+            }
+
             ChampionshipStore.Save(Championship);
         }
 
@@ -1001,6 +1022,15 @@ namespace Pitwall.Live
                         LoadChampionship(command.Argument);
                         break;
                     case CommandNames.Reload:
+                        // Se quello che seguivamo non c'e piu, lo si lascia andare.
+                        //
+                        // LoadChampionship, davanti a un file sparito, restituisce falso e lascia
+                        // in memoria quello di prima: la copia resta, e al primo salvataggio utile
+                        // torna su disco. E la stessa rinascita che si e vista con due campionati
+                        // eliminati, entrata da un'altra porta.
+                        if (Championship != null && !ChampionshipStore.Exists(Championship.Id))
+                            Championship = null;
+
                         if (Championship != null) LoadChampionship(Championship.Id);
                         else LoadMostRecent();
                         break;

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Pitwall.Lingue;
 using Pitwall.Model;
 using Pitwall.Rules;
 using Pitwall.Storage;
@@ -395,29 +396,24 @@ namespace Pitwall.Manager
             switch (Steps.SelectedIndex)
             {
                 case 0:
-                    StepTitle.Text = "Come si chiama";
-                    StepNote.Text = "Nome e stagione del campionato. Il calendario completo si puo " +
-                                    "generare adesso e cambiare dopo.";
+                    StepTitle.Text = Testi.T("passo.nome.titolo");
+                    StepNote.Text = Testi.T("passo.nome.nota");
                     break;
                 case 1:
-                    StepTitle.Text = "Chi corre";
-                    StepNote.Text = "Scegli quante vetture schierare e quali scuderie. Due piloti " +
-                                    "per scuderia, come in Formula 1.";
+                    StepTitle.Text = Testi.T("passo.griglia.titolo");
+                    StepNote.Text = Testi.T("passo.griglia.nota");
                     break;
                 case 2:
-                    StepTitle.Text = "Chi sei tu";
-                    StepNote.Text = "Prendi il posto di un pilota della griglia. Nomi, numeri e " +
-                                    "livello delle IA si possono correggere qui, uno per uno.";
+                    StepTitle.Text = Testi.T("passo.pilota.titolo");
+                    StepNote.Text = Testi.T("passo.pilota.nota");
                     break;
                 case 3:
-                    StepTitle.Text = "Quante gare e come sono fatte";
-                    StepNote.Text = "Scegli i Gran Premi, quanto durano prove e qualifica, quanto " +
-                                    "e lunga la gara e dove mettere le sprint.";
+                    StepTitle.Text = Testi.T("passo.calendario.titolo");
+                    StepNote.Text = Testi.T("passo.calendario.nota");
                     break;
                 default:
-                    StepTitle.Text = "Come si contano i punti";
-                    StepNote.Text = "Un sistema di punteggio fra quelli storici, piu gli eventuali " +
-                                    "bonus. Si cambia anche dopo, dalla scheda Regolamento.";
+                    StepTitle.Text = Testi.T("passo.punti.titolo");
+                    StepNote.Text = Testi.T("passo.punti.nota");
                     break;
             }
 
@@ -432,7 +428,7 @@ namespace Pitwall.Manager
         {
             if (_drivers.Count < 2)
             {
-                MessageBox.Show(this, "Serve almeno una scuderia in gara.", "Nuovo campionato",
+                MessageBox.Show(this, Testi.T("passo.serve.scuderia"), "Nuovo campionato",
                                 MessageBoxButton.OK, MessageBoxImage.Warning);
                 Steps.SelectedIndex = 1;
                 RefreshStep();
@@ -485,7 +481,7 @@ namespace Pitwall.Manager
 
             if (opzioni.WithCalendar && opzioni.Rounds.Count == 0)
             {
-                MessageBox.Show(this, "Nessuna gara in calendario: scegline almeno una.",
+                MessageBox.Show(this, Testi.T("passo.serve.gara"),
                                 "Nuovo campionato", MessageBoxButton.OK, MessageBoxImage.Warning);
                 Steps.SelectedIndex = 3;
                 RefreshStep();
